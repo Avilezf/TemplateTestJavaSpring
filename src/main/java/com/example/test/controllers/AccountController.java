@@ -1,0 +1,55 @@
+package com.example.test.controllers;
+
+import com.example.test.models.Account;
+import com.example.test.models.Transaction;
+import com.example.test.services.AccountService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/accounts")
+public class AccountController {
+
+    @Autowired
+    private AccountService accountService;
+
+    @GetMapping()
+    @ResponseStatus(HttpStatus.OK)
+    public List<Account> list() {
+        return accountService.findAll();
+    }
+
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public Account detail(@PathVariable Long id) {
+        return accountService.findById(id);
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Account save(@RequestBody Account account){
+        return accountService.save(account);
+    }
+
+    @PostMapping("/transfer")
+    public ResponseEntity<?> transfer(@RequestBody Transaction transaction) {
+        accountService.transference(transaction.getAccountPayer(), transaction.getAccountPayee(), transaction.getAmount(), transaction.getBankId());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("date", LocalDate.now().toString());
+        response.put("status", "OK");
+        response.put("message", "Transfer successfully done");
+        response.put("transaction", transaction);
+
+        return ResponseEntity.ok(response);
+    }
+
+}
